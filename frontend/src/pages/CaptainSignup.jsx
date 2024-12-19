@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { CaptainDataContext } from "../context/CaptainContext";
+import CaptainContext from "../context/CaptainContext";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const CaptainSignup = () => {
   const [email, setEmail] = useState("");
@@ -11,9 +15,14 @@ const CaptainSignup = () => {
   const [capacity, setCapacity] = useState("");
   const [vehicleType, setVehicleType] = useState("");
   const [data, setData] = useState({});
-  const submitHandler = (e) => {
+
+  const navigate = useNavigate();
+
+  const { captain, setCaptain } = React.useContext(CaptainDataContext);
+
+  const submitHandler = async (e) => {
     e.preventDefault();
-    setData({
+    const captainData = {
       fullname: {
         firstname,
         lastname,
@@ -26,8 +35,17 @@ const CaptainSignup = () => {
         capacity,
         vehicleType,
       },
-    });
-    console.log(data);
+    };
+    const responce = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}captains/register`,
+      captainData
+    );
+    if (responce.status === 201) {
+      const data = responce.data;
+      setCaptain(data.captain);
+      localStorage.setItem("token", data.token);
+      navigate("/Captain/Home");
+    }
     setFirstname("");
     setLastname("");
     setEmail("");
@@ -117,7 +135,7 @@ const CaptainSignup = () => {
               placeholder="Plate"
             />
             <input
-              type="text"
+              type="number"
               className="bg-[#eeeeee]  rounded px-4 py-2  border w-1/2 text-base placeholder:text-base"
               value={capacity}
               onChange={(e) => {
@@ -132,6 +150,7 @@ const CaptainSignup = () => {
               onChange={(e) => setVehicleType(e.target.value)}
               className="bg-[#eeeeee]  rounded px-4 py-2  border w-1/2 text-base placeholder:text-base"
             >
+              <option value="">Vehicle Type</option>
               <option value="car">Car</option>
               <option value="bike">Bike</option>
               <option value="auto">Auto</option>
